@@ -13,7 +13,16 @@
 #include <mach/thread_act.h>
 #include <mach/thread_state.h>
 #include <mach/thread_status.h>
+#include <TargetConditionals.h>
 #include "include/mach.h"
+
+#if TARGET_OS_TV
+extern kern_return_t ellekit_task_set_state(task_t task,
+                                            thread_state_flavor_t flavor,
+                                            thread_state_t new_state,
+                                            mach_msg_type_number_t new_state_count)
+    __asm("_task_set_state");
+#endif
 
 extern mach_port_t EKLaunchExceptionHandler(void);
 extern void EKAddHookToRegistry(void* target, void* replacement);
@@ -238,7 +247,13 @@ void EKJITLessHook(void* _target, void* _replacement, void** orig) {
     
     hookCount++;
     
-    kern_return_t task_setstate_ret = task_set_state(mach_task_self(), ARM_DEBUG_STATE64, (thread_state_t)&globalDebugState, ARM_DEBUG_STATE64_COUNT_);
+    kern_return_t task_setstate_ret =
+#if TARGET_OS_TV
+        ellekit_task_set_state(
+#else
+        task_set_state(
+#endif
+            mach_task_self(), ARM_DEBUG_STATE64, (thread_state_t)&globalDebugState, ARM_DEBUG_STATE64_COUNT_);
     
     if (task_setstate_ret != KERN_SUCCESS) {
         printf("[-] ellekit: JIT hook did not work, task_set_state failed with err: %s\n", mach_error_string(task_setstate_ret));

@@ -5,6 +5,58 @@
 import Foundation
 import Darwin
 
+#if os(tvOS)
+@_silgen_name("task_set_exception_ports")
+private func tvOS_task_set_exception_ports(
+    _ task: task_t,
+    _ exceptionMask: exception_mask_t,
+    _ newPort: mach_port_t,
+    _ behavior: exception_behavior_t,
+    _ newFlavor: thread_state_flavor_t
+) -> kern_return_t
+
+@_silgen_name("mach_msg")
+private func tvOS_mach_msg(
+    _ message: UnsafeMutablePointer<mach_msg_header_t>,
+    _ option: mach_msg_option_t,
+    _ sendSize: mach_msg_size_t,
+    _ receiveSize: mach_msg_size_t,
+    _ receiveName: mach_port_name_t,
+    _ timeout: mach_msg_timeout_t,
+    _ notify: mach_port_name_t
+) -> mach_msg_return_t
+#endif
+
+private func ellekitTaskSetExceptionPorts(
+    _ task: task_t,
+    _ exceptionMask: exception_mask_t,
+    _ newPort: mach_port_t,
+    _ behavior: exception_behavior_t,
+    _ newFlavor: thread_state_flavor_t
+) -> kern_return_t {
+    #if os(tvOS)
+    tvOS_task_set_exception_ports(task, exceptionMask, newPort, behavior, newFlavor)
+    #else
+    task_set_exception_ports(task, exceptionMask, newPort, behavior, newFlavor)
+    #endif
+}
+
+private func ellekitMachMessage(
+    _ message: UnsafeMutablePointer<mach_msg_header_t>,
+    _ option: mach_msg_option_t,
+    _ sendSize: mach_msg_size_t,
+    _ receiveSize: mach_msg_size_t,
+    _ receiveName: mach_port_name_t,
+    _ timeout: mach_msg_timeout_t,
+    _ notify: mach_port_name_t
+) -> mach_msg_return_t {
+    #if os(tvOS)
+    tvOS_mach_msg(message, option, sendSize, receiveSize, receiveName, timeout, notify)
+    #else
+    mach_msg(message, option, sendSize, receiveSize, receiveName, timeout, notify)
+    #endif
+}
+
 #if SWIFT_PACKAGE
 import ellekitc
 #endif
@@ -34,7 +86,7 @@ public final class ExceptionHandler {
         }
 
         #if arch(arm64) || _ptrauth(_arm64e)
-        if task_set_exception_ports(
+        if ellekitTaskSetExceptionPorts(
             mach_task_self_,
             exception_mask_t(EXC_MASK_BREAKPOINT),
             targetPort,
@@ -70,7 +122,7 @@ public final class ExceptionHandler {
         defer { msg_header.deallocate() }
 
         while true {
-            let krt1 = mach_msg(
+            let krt1 = ellekitMachMessage(
                 msg_header,
                 MACH_RCV_MSG | MACH_RCV_LARGE,
                 0,
@@ -101,7 +153,7 @@ public final class ExceptionHandler {
             reply.NDR = req.NDR
             reply.RetCode = retCode
 
-            let krt2 = mach_msg (
+            let krt2 = ellekitMachMessage(
                 &reply.Head,
                 MACH_SEND_MSG,
                 reply.Head.msgh_size,

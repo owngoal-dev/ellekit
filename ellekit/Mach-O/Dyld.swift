@@ -21,7 +21,7 @@ public func sharedCachePath() -> String {
         #endif
     }
     #else
-    if #available(iOS 16.0, *) {
+    if #available(iOS 16.0, tvOS 16.0, *) {
         if FileManager.default.fileExists(atPath: "/System/Cryptexes/OS/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64e") {
             return "/System/Cryptexes/OS/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64e"
         } else {

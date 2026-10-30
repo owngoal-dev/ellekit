@@ -2,6 +2,7 @@
 // This file is licensed under the BSD-3 Clause License
 // Copyright 2022 © Charlotte Belanger
 
+#if !os(tvOS)
 import Foundation
 
 @_silgen_name("IOHIDEventSystemClientCreate")
@@ -184,3 +185,5 @@ func checkVolumeUp() -> Bool {
     tprint("trying alternative")
     return false
 }
+
+#endif

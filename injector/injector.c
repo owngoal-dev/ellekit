@@ -460,13 +460,24 @@ static void injection_init(void) {
         rootless = true;
     }
     
-    if (CFBundleGetMainBundle() && CFBundleGetIdentifier(CFBundleGetMainBundle())) {
-        if (CFEqual(CFBundleGetIdentifier(CFBundleGetMainBundle()), CFSTR("com.apple.springboard"))) {
-            if (rootless) {
-                dlopen(MOBILESAFETY_PATH_ROOTLESS, RTLD_NOW);
-            } else {
-                dlopen(MOBILESAFETY_PATH_ROOTFUL, RTLD_NOW);
-            }
+#if TARGET_OS_TV
+    char tvExecutablePath[PATH_MAX] = {0};
+    uint32_t tvExecutablePathSize = sizeof(tvExecutablePath);
+    bool isPineBoard = _NSGetExecutablePath(tvExecutablePath, &tvExecutablePathSize) == 0
+        && strcmp(tvExecutablePath, "/Applications/PineBoard.app/PineBoard") == 0;
+#endif
+
+    bool isSpringBoard = CFBundleGetMainBundle() && CFBundleGetIdentifier(CFBundleGetMainBundle())
+        && CFEqual(CFBundleGetIdentifier(CFBundleGetMainBundle()), CFSTR("com.apple.springboard"));
+    if (isSpringBoard
+#if TARGET_OS_TV
+        || isPineBoard
+#endif
+    ) {
+        if (rootless) {
+            dlopen(MOBILESAFETY_PATH_ROOTLESS, RTLD_NOW);
+        } else {
+            dlopen(MOBILESAFETY_PATH_ROOTFUL, RTLD_NOW);
         }
     }
 #endif
