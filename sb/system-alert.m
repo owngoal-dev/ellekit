@@ -1,12 +1,13 @@
 // PineBoard and SurfBoard present safety UI through CFUserNotification.
 #include <TargetConditionals.h>
-#if TARGET_OS_TV || TARGET_OS_VISION
+#if !TARGET_OS_OSX
 #import <Foundation/Foundation.h>
 #import <objc/runtime.h>
 #include <dlfcn.h>
 #include <errno.h>
 #include <unistd.h>
-#if TARGET_OS_VISION
+#include "process.h"
+#if !TARGET_OS_TV
 #import <UIKit/UIKit.h>
 #endif
 
@@ -25,11 +26,9 @@ static void EKShowSystemSafeModeAlert(NSString *markerPath)
         if (!key) return;
         keys[i] = *key;
     }
-#if TARGET_OS_VISION
-    CFStringRef message = CFSTR("You've entered safe mode. SurfBoard tweaks will not get injected until you respring your device. You can select Dismiss to safely remove your broken tweaks.");
-#else
-    CFStringRef message = CFSTR("You've entered safe mode. PineBoard tweaks will not get injected until you respring your device. You can select Dismiss to safely remove your broken tweaks.");
-#endif
+    CFStringRef message = EKIsSurfBoard()
+        ? CFSTR("You've entered safe mode. SurfBoard tweaks will not get injected until you respring your device. You can select Dismiss to safely remove your broken tweaks.")
+        : CFSTR("You've entered safe mode. PineBoard tweaks will not get injected until you respring your device. You can select Dismiss to safely remove your broken tweaks.");
     const void *values[] = {
         CFSTR("Safe Mode"),
         message,
@@ -58,7 +57,7 @@ static void EKShowSystemSafeModeAlert(NSString *markerPath)
 void EKEnableSystemSafeModeAlert(const char *safeModePath)
 {
     NSString *markerPath = [NSString stringWithUTF8String:safeModePath];
-#if TARGET_OS_VISION
+#if !TARGET_OS_TV
     // MobileSafety is loaded by the injector before UIApplication finishes launching.
     // Use UIKit's lifecycle notification instead of assuming PineBoard's private callback exists.
     __block id observer = nil;

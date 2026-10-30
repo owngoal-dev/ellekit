@@ -20,10 +20,10 @@
 
 #include <roothide/roothide.h>
 
+#include "../../sb/process.h"
+
 void EKInstallSBCrashHandler(const char *safeModePath);
-#if TARGET_OS_TV || TARGET_OS_VISION
 void EKEnableSystemSafeModeAlert(const char *safeModePath);
-#endif
 
 struct sCSRange {
    unsigned long long location;

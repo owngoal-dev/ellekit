@@ -140,6 +140,15 @@ func performHooks() {
 @_cdecl("tweak_entry")
 public func tweak_entry() {
     
+    if EKIsSurfBoard() {
+        let safeModePath = jbroot("/var/mobile/.eksafemode")
+        safeModePath.withCString { EKInstallSBCrashHandler($0) }
+        if FileManager.default.fileExists(atPath: safeModePath) {
+            safeModePath.withCString { EKEnableSystemSafeModeAlert($0) }
+        }
+        return
+    }
+
     NSLog("MobileSafety: Hello world, SpringBoard!")
                 
     if FileManager.default.fileExists(atPath: jbroot("/var/mobile/.eksafemode")) {
