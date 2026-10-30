@@ -186,3 +186,34 @@ build-visionos:
 
 build-visionos-compat:
 	xcodebuild -project ellekit.xcodeproj -target ellekit -configuration $(CONFIGURATION) -sdk iphoneos SDKROOT=iphoneos IPHONEOS_DEPLOYMENT_TARGET=15.0 'ARCHS=arm64 arm64e' ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO SYMROOT="$(CURDIR)/build/visionos-compat" OBJROOT="$(CURDIR)/build/visionos-compat/Intermediates" LD_DYLIB_INSTALL_NAME=@rpath/CydiaSubstrate.framework/CydiaSubstrate
+
+# visionOS currently uses the iphoneos-arm64e RootHide bootstrap.
+# Keep the platform in the asset name without inventing a foreign dpkg architecture.
+.PHONY: deb-visionos-roothide
+deb-visionos-roothide: ARCHITECTURE = iphoneos-arm64e
+deb-visionos-roothide: STAGE_DIR = work-visionos-$(ARCHITECTURE)/stage
+deb-visionos-roothide: INSTALL_PREFIX =
+deb-visionos-roothide: build-visionos
+	@rm -rf work-visionos-$(ARCHITECTURE)
+	@mkdir -p $(INSTALL_ROOT)/usr/lib/ellekit $(INSTALL_ROOT)/usr/lib/TweakInject
+	@install -m644 $(VISIONOS_BUILD_DIR)/$(CONFIGURATION)-xros/libellekit.dylib $(INSTALL_ROOT)/usr/lib/libellekit.dylib
+	@install -m644 $(VISIONOS_BUILD_DIR)/$(CONFIGURATION)-xros/libinjector.dylib $(INSTALL_ROOT)/usr/lib/ellekit/libinjector.dylib
+	@install -m644 $(VISIONOS_BUILD_DIR)/$(CONFIGURATION)-xros/libsafemode-ui.dylib $(INSTALL_ROOT)/usr/lib/ellekit/MobileSafety.dylib
+	@find $(INSTALL_ROOT)/usr/lib -type f -exec ldid -S {} \;
+	@ln -s /usr/lib/ellekit/libinjector.dylib $(INSTALL_ROOT)/usr/lib/TweakLoader.dylib
+	@ln -s /usr/lib/ellekit/libinjector.dylib $(INSTALL_ROOT)/usr/lib/TweakInject.dylib
+	@ln -s /usr/lib/libellekit.dylib $(INSTALL_ROOT)/usr/lib/libsubstrate.dylib
+	@ln -s /usr/lib/libellekit.dylib $(INSTALL_ROOT)/usr/lib/libhooker.dylib
+	@ln -s /usr/lib/libellekit.dylib $(INSTALL_ROOT)/usr/lib/libblackjack.dylib
+	@mkdir -p $(INSTALL_ROOT)/Library/Frameworks/CydiaSubstrate.framework $(INSTALL_ROOT)/Library/MobileSubstrate
+	@ln -s /usr/lib/libellekit.dylib $(INSTALL_ROOT)/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate
+	@ln -s /usr/lib/TweakInject $(INSTALL_ROOT)/Library/MobileSubstrate/DynamicLibraries
+	@mkdir -p $(INSTALL_ROOT)/usr/share/doc/ellekit $(STAGE_DIR)/DEBIAN
+	@install -m644 LICENSE $(INSTALL_ROOT)/usr/share/doc/ellekit/LICENSE
+	@sed -e "s|@DEB_VERSION@|$(DEB_VERSION)|g" -e "s|@DEB_ARCH@|$(ARCHITECTURE)|g" packaging/control >$(STAGE_DIR)/DEBIAN/control
+	@sed -e "s|@DEB_VERSION@|$(DEB_VERSION)|g" -e "s|@DEB_ARCH@|$(ARCHITECTURE)|g" -e "s|@INSTALL_PREFIX@|$(INSTALL_PREFIX)|g" packaging/preinst >$(STAGE_DIR)/DEBIAN/preinst
+	@sed -e "s|@DEB_VERSION@|$(DEB_VERSION)|g" -e "s|@DEB_ARCH@|$(ARCHITECTURE)|g" -e "s|@INSTALL_PREFIX@|$(INSTALL_PREFIX)|g" packaging/postinst >$(STAGE_DIR)/DEBIAN/postinst
+	@sed -e "s|@DEB_VERSION@|$(DEB_VERSION)|g" -e "s|@DEB_ARCH@|$(ARCHITECTURE)|g" -e "s|@INSTALL_PREFIX@|$(INSTALL_PREFIX)|g" packaging/postrm >$(STAGE_DIR)/DEBIAN/postrm
+	@chmod 0755 $(STAGE_DIR)/DEBIAN/preinst $(STAGE_DIR)/DEBIAN/postinst $(STAGE_DIR)/DEBIAN/postrm
+	@mkdir -p packages
+	dpkg-deb --root-owner-group -b $(STAGE_DIR) packages/ellekit_$(DEB_VERSION)_visionos-$(ARCHITECTURE).deb
