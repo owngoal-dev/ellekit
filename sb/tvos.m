@@ -22,8 +22,8 @@ static void EKShowTVSafeModeAlert(NSString *markerPath)
     }
     const void *values[] = {
         CFSTR("Safe Mode"),
-        CFSTR("PineBoard crashed. App tweaks are disabled. Remove the faulty tweak before exiting safe mode."),
-        CFSTR("Keep Safe Mode"), CFSTR("Exit Safe Mode")
+        CFSTR("You've entered safe mode. PineBoard tweaks will not get injected until you respring your device. You can select Dismiss to safely remove your broken tweaks."),
+        CFSTR("Dismiss"), CFSTR("Exit Safe Mode")
     };
     CFDictionaryRef options = CFDictionaryCreate(NULL, keys, values, 4, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     SInt32 error = 0;
@@ -36,7 +36,7 @@ static void EKShowTVSafeModeAlert(NSString *markerPath)
     CFOptionFlags response = 0;
     SInt32 status = receive(notification, 0, &response);
     CFRelease(notification);
-    // Cancel/Keep preserves ElleKit's own marker. Only an explicit Exit clears it.
+    // Cancel/Dismiss preserves ElleKit's own marker. Only an explicit Exit clears it.
     if (status == 0 && (response & 3) == 1) {
         if (unlink(markerPath.fileSystemRepresentation) == 0 || errno == ENOENT) {
             exit(0);
