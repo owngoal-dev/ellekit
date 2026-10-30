@@ -460,6 +460,13 @@ static void injection_init(void) {
         rootless = true;
     }
     
+#if TARGET_OS_VISION
+    char visionExecutablePath[PATH_MAX] = {0};
+    uint32_t visionExecutablePathSize = sizeof(visionExecutablePath);
+    bool isSurfBoard = _NSGetExecutablePath(visionExecutablePath, &visionExecutablePathSize) == 0
+        && strcmp(visionExecutablePath, "/System/Library/CoreServices/SurfBoard.app/SurfBoard") == 0;
+#endif
+
 #if TARGET_OS_TV
     char tvExecutablePath[PATH_MAX] = {0};
     uint32_t tvExecutablePathSize = sizeof(tvExecutablePath);
@@ -472,6 +479,9 @@ static void injection_init(void) {
     if (isSpringBoard
 #if TARGET_OS_TV
         || isPineBoard
+#endif
+#if TARGET_OS_VISION
+        || isSurfBoard
 #endif
     ) {
         if (rootless) {

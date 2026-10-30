@@ -2,7 +2,7 @@
 // This file is licensed under the BSD-3 Clause License
 // Copyright 2022 © Charlotte Belanger
 
-#if !os(tvOS)
+#if !os(tvOS) && !os(visionOS)
 import Foundation
 
 @_silgen_name("IOHIDEventSystemClientCreate")

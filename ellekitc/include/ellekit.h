@@ -21,8 +21,8 @@
 #include <roothide/roothide.h>
 
 void EKInstallSBCrashHandler(const char *safeModePath);
-#if TARGET_OS_TV
-void EKEnableTVSafeModeAlert(const char *safeModePath);
+#if TARGET_OS_TV || TARGET_OS_VISION
+void EKEnableSystemSafeModeAlert(const char *safeModePath);
 #endif
 
 struct sCSRange {

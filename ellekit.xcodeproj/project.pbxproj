@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AB0000010000000000000001 /* tvos.m in Sources */ = {isa = PBXBuildFile; fileRef = AB0000010000000000000002 /* tvos.m */; platformFilters = (tvos, ); };
+		AB0000010000000000000001 /* system-alert.m in Sources */ = {isa = PBXBuildFile; fileRef = AB0000010000000000000002 /* system-alert.m */; };
 		9E12F79229FD528F0021CB75 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9E12F79129FD528F0021CB75 /* Foundation.framework */; platformFilters = (ios, maccatalyst, macos, tvos, watchos, ); };
 		9E18B4A92A142E8D002E471A /* Trampoline+Location.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E18B4A82A142E8D002E471A /* Trampoline+Location.swift */; };
 		9E18B4AC2A142EAA002E471A /* Trampoline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E18B4AB2A142EAA002E471A /* Trampoline.swift */; };
@@ -95,7 +95,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		AB0000010000000000000002 /* tvos.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = sb/tvos.m; sourceTree = SOURCE_ROOT; };
+		AB0000010000000000000002 /* system-alert.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = sb/system-alert.m; sourceTree = SOURCE_ROOT; };
 		841E40ED2B14423900A8B198 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		9E080FA2294AA5A000EDC301 /* lib */ = {isa = PBXFileReference; lastKnownFileType = folder; name = lib; path = ../../../../usr/local/lib; sourceTree = "<group>"; };
 		9E080FA4294AA5AC00EDC301 /* libes-injector.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libes-injector.dylib"; path = "../../../../usr/local/lib/libes-injector.dylib"; sourceTree = "<group>"; };
@@ -308,7 +308,7 @@
 			children = (
 				9ED5277E29673BC9009319AA /* button.swift */,
 				9EA4989A29565D0B0099A3ED /* tweak.swift */,
-				AB0000010000000000000002 /* tvos.m */,
+				AB0000010000000000000002 /* system-alert.m */,
 				9EA4989C29565D830099A3ED /* load.s */,
 			);
 			path = sb;
@@ -618,7 +618,7 @@
 				9EC2B2E3296C774B0079379D /* button.swift in Sources */,
 				9E6EBF932960EAF300D0D186 /* Logger.swift in Sources */,
 				9EA498A829565DD00099A3ED /* tweak.swift in Sources */,
-				AB0000010000000000000001 /* tvos.m in Sources */,
+				AB0000010000000000000001 /* system-alert.m in Sources */,
 				9E4A6D9D297B427900E5387E /* routines.s in Sources */,
 				9EA498A729565DD00099A3ED /* load.s in Sources */,
 				9EA498AD2956633A0099A3ED /* ellekitc.m in Sources */,

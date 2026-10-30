@@ -173,3 +173,16 @@ build: build-macos
 else
 build: build-ios
 endif
+
+# Keep both visionOS fallback formats reproducible from the same source revision.
+VISIONOS_BUILD_DIR = $(CURDIR)/build/visionos
+VISIONOS_BUILD_OPTIONS = -project ellekit.xcodeproj -configuration $(CONFIGURATION) -sdk xros SDKROOT=xros SUPPORTED_PLATFORMS=xros XROS_DEPLOYMENT_TARGET=1.0 'ARCHS=arm64 arm64e' ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO SYMROOT="$(VISIONOS_BUILD_DIR)" OBJROOT="$(VISIONOS_BUILD_DIR)/Intermediates"
+
+.PHONY: build-visionos build-visionos-compat
+build-visionos:
+	xcodebuild -target ellekit $(VISIONOS_BUILD_OPTIONS) LD_DYLIB_INSTALL_NAME=@rpath/CydiaSubstrate.framework/CydiaSubstrate
+	xcodebuild -target injector $(VISIONOS_BUILD_OPTIONS) LIBRARY_SEARCH_PATHS="$(CURDIR)/roothide/visionos"
+	xcodebuild -target safemode-ui $(VISIONOS_BUILD_OPTIONS) LIBRARY_SEARCH_PATHS="$(CURDIR)/roothide/visionos"
+
+build-visionos-compat:
+	xcodebuild -project ellekit.xcodeproj -target ellekit -configuration $(CONFIGURATION) -sdk iphoneos SDKROOT=iphoneos IPHONEOS_DEPLOYMENT_TARGET=15.0 'ARCHS=arm64 arm64e' ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO SYMROOT="$(CURDIR)/build/visionos-compat" OBJROOT="$(CURDIR)/build/visionos-compat/Intermediates" LD_DYLIB_INSTALL_NAME=@rpath/CydiaSubstrate.framework/CydiaSubstrate

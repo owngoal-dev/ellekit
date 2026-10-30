@@ -2,7 +2,7 @@
 // This file is licensed under the BSD-3 Clause License
 // Copyright 2022 © Charlotte Belanger
 
-#if os(tvOS)
+#if os(tvOS) || os(visionOS)
 import Foundation
 
 @_cdecl("tweak_entry")
@@ -10,7 +10,7 @@ public func tweak_entry() {
     let safeModePath = jbroot("/var/mobile/.eksafemode")
     safeModePath.withCString { EKInstallSBCrashHandler($0) }
     if FileManager.default.fileExists(atPath: safeModePath) {
-        safeModePath.withCString { EKEnableTVSafeModeAlert($0) }
+        safeModePath.withCString { EKEnableSystemSafeModeAlert($0) }
     }
 }
 #else

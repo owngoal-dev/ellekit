@@ -1,0 +1,56 @@
+{
+  "main_library": {
+    "compatibility_versions": [
+      {
+        "version": "0"
+      }
+    ],
+    "current_versions": [
+      {
+        "version": "0"
+      }
+    ],
+    "exported_symbols": [
+      {
+        "text": {
+          "global": [
+            "__Z6jbrootNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEE",
+            "__Z6rootfsP8NSString",
+            "_jbrootat_alloc",
+            "__Z6jbrootP8NSString",
+            "_rootfs_alloc",
+            "_jbrand",
+            "_jbroot_alloc",
+            "__Z6rootfsNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEE",
+            "___roothide_enter_chroot",
+            "_jbroot",
+            "_rootfs"
+          ]
+        }
+      }
+    ],
+    "flags": [
+      {
+        "attributes": [
+          "not_app_extension_safe"
+        ]
+      }
+    ],
+    "install_names": [
+      {
+        "name": "@loader_path/.jbroot/usr/lib/libroothide.dylib"
+      }
+    ],
+    "target_info": [
+      {
+        "min_deployment": "1.0",
+        "target": "arm64-xros"
+      },
+      {
+        "min_deployment": "1.0",
+        "target": "arm64e-xros"
+      }
+    ]
+  },
+  "tapi_tbd_version": 5
+}

@@ -1,11 +1,16 @@
-// tvOS safety UI is presented by PineBoard's CFUserNotification service.
+// PineBoard and SurfBoard present safety UI through CFUserNotification.
+#include <TargetConditionals.h>
+#if TARGET_OS_TV || TARGET_OS_VISION
 #import <Foundation/Foundation.h>
 #import <objc/runtime.h>
 #include <dlfcn.h>
 #include <errno.h>
 #include <unistd.h>
+#if TARGET_OS_VISION
+#import <UIKit/UIKit.h>
+#endif
 
-static void EKShowTVSafeModeAlert(NSString *markerPath)
+static void EKShowSystemSafeModeAlert(NSString *markerPath)
 {
     CFUserNotificationRef (*create)(CFAllocatorRef, CFTimeInterval, CFOptionFlags, SInt32 *, CFDictionaryRef) = dlsym(RTLD_DEFAULT, "CFUserNotificationCreate");
     SInt32 (*receive)(CFUserNotificationRef, CFTimeInterval, CFOptionFlags *) = dlsym(RTLD_DEFAULT, "CFUserNotificationReceiveResponse");
@@ -20,9 +25,14 @@ static void EKShowTVSafeModeAlert(NSString *markerPath)
         if (!key) return;
         keys[i] = *key;
     }
+#if TARGET_OS_VISION
+    CFStringRef message = CFSTR("You've entered safe mode. SurfBoard tweaks will not get injected until you respring your device. You can select Dismiss to safely remove your broken tweaks.");
+#else
+    CFStringRef message = CFSTR("You've entered safe mode. PineBoard tweaks will not get injected until you respring your device. You can select Dismiss to safely remove your broken tweaks.");
+#endif
     const void *values[] = {
         CFSTR("Safe Mode"),
-        CFSTR("You've entered safe mode. PineBoard tweaks will not get injected until you respring your device. You can select Dismiss to safely remove your broken tweaks."),
+        message,
         CFSTR("Dismiss"), CFSTR("Exit Safe Mode")
     };
     CFDictionaryRef options = CFDictionaryCreate(NULL, keys, values, 4, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
@@ -45,8 +55,22 @@ static void EKShowTVSafeModeAlert(NSString *markerPath)
     }
 }
 
-void EKEnableTVSafeModeAlert(const char *safeModePath)
+void EKEnableSystemSafeModeAlert(const char *safeModePath)
 {
+    NSString *markerPath = [NSString stringWithUTF8String:safeModePath];
+#if TARGET_OS_VISION
+    // MobileSafety is loaded by the injector before UIApplication finishes launching.
+    // Use UIKit's lifecycle notification instead of assuming PineBoard's private callback exists.
+    __block id observer = nil;
+    observer = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification
+        object:nil queue:nil usingBlock:^(NSNotification *notification) {
+        [[NSNotificationCenter defaultCenter] removeObserver:observer];
+        observer = nil;
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+            EKShowSystemSafeModeAlert(markerPath);
+        });
+    }];
+#else
     Class pineBoard = NSClassFromString(@"PineBoard");
     SEL selector = NSSelectorFromString(@"finishSystemAppLaunch");
     Method method = class_getInstanceMethod(pineBoard, selector);
@@ -54,14 +78,15 @@ void EKEnableTVSafeModeAlert(const char *safeModePath)
         NSLog(@"MobileSafety: PineBoard launch callback is unavailable");
         return;
     }
-    NSString *markerPath = [NSString stringWithUTF8String:safeModePath];
     IMP original = method_getImplementation(method);
     IMP replacement = imp_implementationWithBlock(^(id application) {
         ((void (*)(id, SEL))original)(application, selector);
         // The service must be ready, and its main thread must remain free to render/respond.
         dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-            EKShowTVSafeModeAlert(markerPath);
+            EKShowSystemSafeModeAlert(markerPath);
         });
     });
     class_replaceMethod(pineBoard, selector, replacement, method_getTypeEncoding(method));
+#endif
 }
+#endif
